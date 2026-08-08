@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Database SQLite (Jangan masukin file database ke GitHub)
+*.db
+
+# Environment
+venv/
+env/
+
+# VS Code / OS
+.vscode/
+.DS_Store
