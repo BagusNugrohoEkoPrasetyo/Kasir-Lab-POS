@@ -1,153 +1,121 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sqlite3
 import os
-from flask import request
 import datetime
+from supabase import create_client, Client
 
 app = Flask(__name__)
-CORS(app) # Aktifkan CORS agar frontend bisa akses API ini
+CORS(app)
 
-# Buat path absolut ke file database
-# Karena app.py ada di folder backend/, kita naik 1 level (..) lalu masuk folder database/
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database', 'kasir.db')
+# === KONEKSI KE SUPABASE ===
+# Masukkan URL dan Key yang kamu simpan tadi
+SUPABASE_URL = "https://yosjwtcxdycqnicrexdf.supabase.co/rest/v1/"  # GANTI INI
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlvc2p3dGN4ZHljcW5pY3JleGRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzMzQyNDYsImV4cCI6MjEwMTkxMDI0Nn0.9DVQYCIbNo7jxYUtcEEN2A76-yCTz7CfeuiSbrcgv44"   # GANTI INI
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Fungsi untuk koneksi ke database
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row # Agar hasil query berbentuk dictionary (key-value)
-    return conn
 
-# Bikin Endpoint (Route) untuk mengambil data produk
+# === API AMBIL PRODUK ===
 @app.route('/api/products', methods=['GET'])
 def get_products():
-    conn = get_db()
-    # Ambil semua data dari tabel products
-    products = conn.execute('SELECT * FROM products').fetchall()
-    conn.close()
-  
-    # Ubah data SQL menjadi format JSON
-    result = [dict(row) for row in products]
-    return jsonify(result)
+    response = supabase.table('products').select("*").execute()
+    return jsonify(response.data)
 
-# Endpoint untuk Checkout
-@app.route('/api/checkout', methods=['POST'])
-def checkout():
-    data = request.get_json() # Ambil data JSON dari JavaScript
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    try:
-        # 1. Ambil data dari frontend
-        total_price = data['total_price']
-        paid_amount = data['paid_amount']
-        change_amount = data['change_amount']
-        items = data['items'] # Ini adalah array keranjang belanja
-        
-        # 2. Simpan ke tabel transactions (Header)
-        date_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute(
-            "INSERT INTO transactions (date, total_price, paid_amount, change_amount) VALUES (?, ?, ?, ?)",
-            (date_now, total_price, paid_amount, change_amount)
-        )
-        transaction_id = cursor.lastrowid # Ambil ID transaksi yang baru dibuat
-        
-        # 3. Looping keranjang, simpan ke transaction_details dan kurangi stok
-        for item in items:
-            # Simpan detail item
-            cursor.execute(
-                "INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES (?, ?, ?, ?)",
-                (transaction_id, item['id'], item['qty'], item['subtotal'])
-            )
-            
-            # Kurangi stok produk!
-            cursor.execute(
-                "UPDATE products SET stock = stock - ? WHERE id = ?",
-                (item['qty'], item['id'])
-            )
-            
-        # 4. Simpan permanen perubahan database
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"message": "Transaksi berhasil disimpan!", "transaction_id": transaction_id}), 201
-
-    except Exception as e:
-        # Kalau ada error, batalkan semua perubahan (Rollback)
-        conn.rollback()
-        conn.close()
-        return jsonify({"error": str(e)}), 500
-
-# API untuk mengambil detail struk berdasarkan ID Transaksi
-@app.route('/api/receipt/<int:transaction_id>', methods=['GET'])
-def get_receipt(transaction_id):
-    conn = get_db()
-    
-    # Ambil data header transaksi
-    header = conn.execute('SELECT * FROM transactions WHERE id = ?', (transaction_id,)).fetchone()
-    
-    if not header:
-        return jsonify({"error": "Transaksi tidak ditemukan"}), 404
-
-    # Ambil detail item + JOIN dengan tabel products untuk dapat nama produk
-    details = conn.execute('''
-        SELECT td.quantity, td.subtotal, p.name, p.price 
-        FROM transaction_details td 
-        JOIN products p ON td.product_id = p.id 
-        WHERE td.transaction_id = ?
-    ''', (transaction_id,)).fetchall()
-    
-    conn.close()
-    
-    return jsonify({
-        "header": dict(header),
-        "details": [dict(row) for row in details]
-    })
-
-# 1. API untuk TAMBAH PRODUK
+# === API TAMBAH PRODUK ===
 @app.route('/api/products', methods=['POST'])
 def add_product():
     data = request.get_json()
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute(
-        "INSERT INTO products (name, price, stock, image) VALUES (?, ?, ?, ?)",
-        (data['name'], data['price'], data['stock'], data['image'])
-    )
-    conn.commit()
-    conn.close()
+    response = supabase.table('products').insert({
+        "name": data['name'],
+        "price": data['price'],
+        "stock": data['stock'],
+        "image": data['image']
+    }).execute()
     return jsonify({"message": "Produk berhasil ditambahkan!"}), 201
 
-# 2. API untuk EDIT PRODUK
+# === API EDIT PRODUK ===
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
     data = request.get_json()
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute(
-        "UPDATE products SET name = ?, price = ?, stock = ?, image = ? WHERE id = ?",
-        (data['name'], data['price'], data['stock'], data['image'], id)
-    )
-    conn.commit()
-    conn.close()
+    supabase.table('products').update({
+        "name": data['name'],
+        "price": data['price'],
+        "stock": data['stock'],
+        "image": data['image']
+    }).eq("id", id).execute()
     return jsonify({"message": "Produk berhasil diperbarui!"}), 200
 
-# 3. API untuk HAPUS PRODUK
+# === API HAPUS PRODUK ===
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute("DELETE FROM products WHERE id = ?", (id,))
-    conn.commit()
-    conn.close()
+    supabase.table('products').delete().eq("id", id).execute()
     return jsonify({"message": "Produk berhasil dihapus!"}), 200
 
-# Jalankan server
+# === API CHECKOUT ===
+@app.route('/api/checkout', methods=['POST'])
+def checkout():
+    data = request.get_json()
+    date_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # 1. Simpan Header Transaksi
+    trans_response = supabase.table('transactions').insert({
+        "date": date_now,
+        "total_price": data['total_price'],
+        "paid_amount": data['paid_amount'],
+        "change_amount": data['change_amount']
+    }).execute()
+    
+    transaction_id = trans_response.data[0]['id']
+    
+    # 2. Simpan Detail Item & Kurangi Stok
+    for item in data['items']:
+        # Masukin detail
+        supabase.table('transaction_details').insert({
+            "transaction_id": transaction_id,
+            "product_id": item['id'],
+            "quantity": item['qty'],
+            "subtotal": item['subtotal']
+        }).execute()
+        
+        # Kurangi stok
+        # Catatan: Ini query sederhana, di dunia nyata butuh atomic transaction biar nggak race condition
+        current_stock = supabase.table('products').select("stock").eq("id", item['id']).execute()
+        new_stock = current_stock.data[0]['stock'] - item['qty']
+        supabase.table('products').update({"stock": new_stock}).eq("id", item['id']).execute()
+        
+    return jsonify({"message": "Transaksi berhasil disimpan!", "transaction_id": transaction_id}), 201
+
+# === API STRUK ===
+@app.route('/api/receipt/<int:transaction_id>', methods=['GET'])
+def get_receipt(transaction_id):
+    # Ambil Header
+    header_res = supabase.table('transactions').select("*").eq("id", transaction_id).execute()
+    if not header_res.data:
+        return jsonify({"error": "Transaksi tidak ditemukan"}), 404
+    header = header_res.data[0]
+
+    # Ambil Detail + Join Manual (Karena Supabase butuh relasi foreign key diset dulu)
+    details_res = supabase.table('transaction_details').select("quantity, subtotal, product_id").eq("transaction_id", transaction_id).execute()
+    
+    details = []
+    for d in details_res.data:
+        # Ambil nama produk berdasarkan product_id
+        prod_res = supabase.table('products').select("name, price").eq("id", d['product_id']).execute()
+        prod_data = prod_res.data[0]
+        details.append({
+            "quantity": d['quantity'],
+            "subtotal": d['subtotal'],
+            "name": prod_data['name'],
+            "price": prod_data['price']
+        })
+    
+    return jsonify({"header": header, "details": details})
+
+# === ROUTING VERCEL ===
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    # Untuk Vercel, ini nggak dipakai karena udah diatur vercel.json
+    return jsonify({"status": "API Kasir Online!"})
+
 if __name__ == '__main__':
-    # debug=True agar server otomatis restart kalau ada perubahan kode
     app.run(debug=True, port=5000)
