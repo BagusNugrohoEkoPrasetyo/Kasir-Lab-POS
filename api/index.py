@@ -11,7 +11,7 @@ CORS(app) # Aktifkan CORS agar frontend bisa akses API ini
 # Buat path absolut ke file database
 # Karena app.py ada di folder backend/, kita naik 1 level (..) lalu masuk folder database/
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, '..', 'database', 'kasir.db')
+DB_PATH = os.path.join(BASE_DIR, 'database', 'kasir.db')
 
 # Fungsi untuk koneksi ke database
 def get_db():

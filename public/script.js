@@ -1,6 +1,6 @@
 let cart = [];
 let allProducts = [];
-const API_URL = 'http://127.0.0.1:5000/api/products';
+const API_URL = '/api/products';
 
 // Format angka jadi Rupiah (Contoh: 15000 -> Rp 15.000)
 function formatRupiah(angka) {
@@ -201,7 +201,7 @@ async function checkout() {
 
     try {
         // Kirim data ke API Python (POST Request)
-        const response = await fetch('http://127.0.0.1:5000/api/checkout', {
+        const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
