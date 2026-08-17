@@ -39,7 +39,7 @@ function previewImage() {
 }
 
 function openAddModal() {
-    document.getElementById('modalTitle').innerText = "Tambah Menu Baru";
+    document.getElementById('modalTitle').innerText = "Tambah Produk Baru";
     document.getElementById('product-id').value = "";
     document.getElementById('product-name').value = "";
     document.getElementById('product-price').value = "";
@@ -50,7 +50,7 @@ function openAddModal() {
 }
 
 function openEditModal(id, name, price, stock, image) {
-    document.getElementById('modalTitle').innerText = "Edit Menu";
+    document.getElementById('modalTitle').innerText = "Edit Produk";
     document.getElementById('product-id').value = id;
     document.getElementById('product-name').value = name;
     document.getElementById('product-price').value = price;
@@ -82,20 +82,20 @@ async function saveProduct() {
     if (response.ok) {
         productModal.hide();
         fetchProducts(); 
-        alert("Menu berhasil disimpan.");
+        alert("Produk berhasil disimpan.");
     } else {
-        alert("Gagal menyimpan menu.");
+        alert("Gagal menyimpan produk.");
     }
 }
 
 async function deleteProduct(id) {
-    if (confirm("Yakin mau menghapus menu ini?")) {
+    if (confirm("Yakin mau menghapus produk ini?")) {
         const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
         if (response.ok) {
             fetchProducts();
-            alert("Menu berhasil dihapus!");
+            alert("Produk berhasil dihapus!");
         } else {
-            alert("Gagal menghapus menu.");
+            alert("Gagal menghapus produk.");
         }
     }
 }
