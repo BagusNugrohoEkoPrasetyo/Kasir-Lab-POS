@@ -1,11 +1,11 @@
-import sqlite3
+import sqlite3 #mengimpor modul sqlite3 buat koneksi ke database SQLite
 
-conn = sqlite3.connect('kasir.db')
-cursor = conn.cursor()
+conn = sqlite3.connect('kasir.db') #membuka koneksi ke database kasir.db (jika belum ada, maka akan dibuat baru)
+cursor = conn.cursor() #membuat cursor buat eksekusi query SQL
 
-cursor.execute("DROP TABLE IF EXISTS products")
-cursor.execute("DROP TABLE IF EXISTS transactions")
-cursor.execute("DROP TABLE IF EXISTS transaction_details")
+cursor.execute("DROP TABLE IF EXISTS products") #menghapus tabel products jika sudah ada (buat mencegah error saat bikin tabel baru)
+cursor.execute("DROP TABLE IF EXISTS transactions") #menghapus tabel transactions jika sudah ada (buat mencegah error saat bikin tabel baru)
+cursor.execute("DROP TABLE IF EXISTS transaction_details") #menghapus tabel transaction_details jika sudah ada (buat mencegah error saat bikin tabel baru)
 
 cursor.execute("""
 CREATE TABLE products (
@@ -15,7 +15,7 @@ CREATE TABLE products (
     stock INTEGER NOT NULL,
     image TEXT NOT NULL
 )
-""")
+""") #membuat tabel products dengan kolom id (integer, primary key, auto increment), name (text, not null), price (integer, not null), stock (integer, not null), dan image (text, not null)
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS transactions (
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     paid_amount INTEGER NOT NULL,
     change_amount INTEGER NOT NULL
 )
-""")
+""") #membuat tabel transactions dengan kolom id (integer, primary key, auto increment), date (text, not null), total_price (integer, not null), paid_amount (integer, not null), dan change_amount (integer, not null)
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS transaction_details (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS transaction_details (
     FOREIGN KEY (transaction_id) REFERENCES transactions (id),
     FOREIGN KEY (product_id) REFERENCES products (id)
 )
-""")
+""") #membuat tabel transaction_details dengan kolom id (integer, primary key, auto increment), transaction_id (integer, not null), product_id (integer, not null), quantity (integer, not null), subtotal (integer, not null), dan foreign key buat menghubungkan transaction_id ke tabel transactions dan product_id ke tabel products
 
 cursor.executemany("""
 INSERT INTO products (name, price, stock, image) VALUES (?, ?, ?, ?)
@@ -47,9 +47,9 @@ INSERT INTO products (name, price, stock, image) VALUES (?, ?, ?, ?)
     ('Roti Bakar', 20000, 20, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROizODSSI5qhACtO7zMtbTsGvPAh7uH7vlsTgS7Bc0eg&s=10'),
     ('Air Mineral', 5000, 100, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStmt0hsS1mcJPLa8xMBduVqIwnUaxcH61FrffkBFUL1A&s=10'),
     ('Mie Instan', 8000, 30, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtfZ9zwq1W_bR0NdHwGwMNm9c_kgX3pw4-sCHLXfHEEg&s=10')
-])
+]) #menambahkan beberapa data produk ke tabel products dengan menggunakan parameterized query ('?') buat mencegah SQL injection. Data yang ditambahkan berupa nama produk, harga, stok, dan URL gambar produk.
 
-conn.commit()
-conn.close()
+conn.commit() #menyimpan perubahan ke database (commit) setelah mengeksekusi query INSERT buat nambah data produk
+conn.close() #menutup koneksi ke database setelah selesai mengeksekusi query dan menyimpan perubahan
 
-print("Database 'kasir.db' berhasil dibuat dan data produk sudah diisi!")
+print("Database 'kasir.db' berhasil dibuat dan data produk sudah diisi!") #menampilkan pesan ke console bahwa database kasir.db berhasil dibuat dan data produk sudah diisi

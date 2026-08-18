@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KasirKu - Project LEPKOM</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> <!--mengimpor framework CSS bootstrap 5 via CDN untuk tata letak dan komponen visual-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"> <!--mengimpor pustaka ikon bootstrap icons-->   
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"> <!--mengimpor font family Poppins dari Google Fonts-->
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f0f4f8; }
         .navbar-brand { font-weight: 700; color: #4f46e5; }
@@ -16,7 +16,7 @@
     <nav class="navbar navbar-light bg-white shadow-sm mb-4">
         <div class="container-fluid px-4">
             <span class="navbar-brand mb-0 h1"><i class="bi bi-receipt-cutoff"></i> KasirKu - Project LEPKOM</span>
-            <a href="index.html" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> Kembali ke Kasir</a>
+            <a href="index.html" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> Kembali ke Kasir</a> <!--tombol link kembali ke halaman kasir-->
         </div>
     </nav>
 
@@ -24,7 +24,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">Kelola Daftar Produk</h4>
-                <button class="btn btn-primary" onclick="openAddModal()"><i class="bi bi-plus-lg"></i> Tambah Produk</button>
+                <button class="btn btn-primary" onclick="openAddModal()"><i class="bi bi-plus-lg"></i> Tambah Produk</button> <!--tombol untuk membuka modal tambah produk baru-->
             </div>
             <div class="card-body">
                 <table class="table table-hover align-middle">
@@ -41,26 +41,26 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Tambah produk Baru</h5>
+                    <h5 class="modal-title" id="modalTitle">Tambah produk Baru</h5> <!--judul modal yang akan berubah sesuai aksi tambah atau edit produk-->
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="product-id">
                     <div class="mb-3">
                         <label class="form-label">Nama produk</label>
-                        <input type="text" class="form-control" id="product-name" required>
+                        <input type="text" class="form-control" id="product-name" required> <!--input untuk nama produk dengan id product-name-->
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Harga (Rp)</label>
-                        <input type="number" class="form-control" id="product-price" required>
+                        <input type="number" class="form-control" id="product-price" required> <!--input untuk harga produk dengan id product-price-->
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Stok</label>
-                        <input type="number" class="form-control" id="product-stock" required>
+                        <input type="number" class="form-control" id="product-stock" required> <!--input untuk stok produk dengan id product-stock-->
                     </div>
                     <div class="mb-3">
                         <label class="form-label">URL Gambar</label>
-                        <input type="text" class="form-control" id="product-image" placeholder="https://..." oninput="previewImage()" required>
+                        <input type="text" class="form-control" id="product-image" placeholder="https://..." oninput="previewImage()" required> <!--input untuk URL gambar produk dengan id product-image dan event oninput untuk memanggil fungsi previewImage()-->
                         <div class="mt-2 text-center">
                             <img id="image-preview" src="https://via.placeholder.com/100" alt="Preview" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid #ddd;">
                             <small class="d-block text-muted mt-1">Pratinjau Gambar</small>
@@ -69,13 +69,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Simpan</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Simpan</button> <!--tombol untuk menyimpan produk baru atau perubahan produk yang memanggil fungsi saveProduct()-->
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="manage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> <!--mengimpor pustaka JavaScript bootstrap 5 via CDN untuk interaktivitas komponen-->
+    <script src="manage.js"></script> <!--mengimpor file JavaScript manage.js yang berisi logika untuk mengelola produk-->
 </body>
 </html>

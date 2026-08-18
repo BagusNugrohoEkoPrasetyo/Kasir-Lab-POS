@@ -1,5 +1,5 @@
-let cart = [];
-let allProducts = [];
+let cart = [];//array untuk menyimpan data produk yang ditambahkan ke keranjang belanja
+let allProducts = [];// array untuk menyimpan semua data produk yang diambil dari server
 const API_URL = 'http://127.0.0.1:5000/api/products';
 
 function formatRupiah(angka) {
@@ -17,7 +17,7 @@ async function fetchProducts() {
     }
 }
 
-function displayProducts(productsToShow) {
+function displayProducts(productsToShow) {//fungsi untuk menampilkan produk yang diambil dari server ke dalam elemen HTML
     const productList = document.getElementById('product-list');
     productList.innerHTML = '';
 
@@ -42,13 +42,13 @@ function displayProducts(productsToShow) {
     });
 }
 
-document.getElementById('search-product').addEventListener('input', function(e) {
+document.getElementById('search-product').addEventListener('input', function(e) {//fungsi untuk mencari produk berdasarkan nama saat pengguna mengetik di input pencarian
     const searchText = e.target.value.toLowerCase();
     const filteredProducts = allProducts.filter(product => product.name.toLowerCase().includes(searchText));
     displayProducts(filteredProducts);
 });
 
-function addToCart(id, name, price) {
+function addToCart(id, name, price) {//fungsi untuk menambahkan produk ke keranjang belanja
     const existingItem = cart.find(item => item.id === id);
     if (existingItem) {
         existingItem.qty += 1;
@@ -58,12 +58,12 @@ function addToCart(id, name, price) {
     renderCart();
 }
 
-function increaseQty(id) {
+function increaseQty(id) {//fungsi untuk menambah jumlah produk di keranjang belanja
     const item = cart.find(item => item.id === id);
     if (item) { item.qty += 1; renderCart(); }
 }
 
-function decreaseQty(id) {
+function decreaseQty(id) {//fungsi untuk mengurangi jumlah produk di keranjang belanja
     const item = cart.find(item => item.id === id);
     if (item) {
         item.qty -= 1;
@@ -74,7 +74,7 @@ function decreaseQty(id) {
     }
 }
 
-function renderCart() {
+function renderCart() {//fungsi untuk menampilkan isi keranjang belanja di modal
     const cartList = document.getElementById('cart-list');
     const cartCount = document.getElementById('cart-count');
     cartList.innerHTML = '';
@@ -114,7 +114,7 @@ function renderCart() {
     calculateChange();
 }
 
-function calculateChange() {
+function calculateChange() {//fungsi untuk menghitung kembalian saat pengguna memasukkan jumlah uang yang dibayarkan
     let total = 0;
     cart.forEach(item => total += (item.price * item.qty));
     let paid = parseInt(document.getElementById('paid-amount').value) || 0;
@@ -122,7 +122,7 @@ function calculateChange() {
     document.getElementById('change-amount').innerText = change >= 0 ? formatRupiah(change) : "Rp 0";
 }
 
-async function checkout() {
+async function checkout() {//fungsi untuk melakukan checkout dan mengirim data transaksi ke server
     let total = 0;
     let checkoutItems = cart.map(item => {
         let subtotal = item.price * item.qty;
@@ -138,7 +138,7 @@ async function checkout() {
 
     const payload = { total_price: total, paid_amount: paid, change_amount: change, items: checkoutItems };
 
-    try {
+    try {//mengirim data transaksi ke server menggunakan fetch API
         const response = await fetch('http://127.0.0.1:5000/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

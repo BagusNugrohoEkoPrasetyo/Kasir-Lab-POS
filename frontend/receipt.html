@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk Transaksi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet"><!--mengimpor font family Roboto Mono dari Google Fonts-->
     <style>
         body { background-color: #f0f4f8; display: flex; justify-content: center; padding-top: 40px; }
         .receipt-paper { background: #fff; width: 350px; padding: 25px; box-shadow: 0 0 15px rgba(0,0,0,0.1); font-family: 'Roboto Mono', monospace; }
@@ -24,14 +24,14 @@
     <div>
         <div class="receipt-paper" id="receipt-content"></div>
         <div class="text-center mt-4 no-print">
-            <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print / Save as PDF</button>
-            <a href="index.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali ke Kasir</a>
+            <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print / Save as PDF</button> <!--tombol untuk mencetak struk atau menyimpannya sebagai PDF-->
+            <a href="index.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali ke Kasir</a> <!--tombol link kembali ke halaman kasir-->
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
-        async function printReceipt() {
+        async function printReceipt() {//fungsi untuk mengambil data struk dari server dan menampilkannya di halaman struk
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
 
@@ -88,7 +88,7 @@
                 <div class="line"></div>
             `;
         }
-        printReceipt();
+        printReceipt(); //memanggil fungsi printReceipt() untuk menampilkan struk saat halaman dimuat
     </script>
 </body>
 </html>
