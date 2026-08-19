@@ -1,19 +1,19 @@
-from flask import Flask, jsonify, request #import Flask buat app web, jsonify buat ngubah data ke JSON, request buat nerima data dari frontend
-from flask_cors import CORS #import CORS biar API backend bisa diakses dari frontend
-import sqlite3 #import sqlite3 bwat database 
-import os #import os buat ngelola path
+from flask import Flask, jsonify, request #Flask buat app web, jsonify buat ngubah data ke JSON, request buat nerima data dari frontend
+from flask_cors import CORS #biar API backend bisa diakses dari frontend
+import sqlite3 #buat database 
+import os #buat ngelola path
 import datetime
 
 app = Flask(__name__) #membuat instance Flask
-CORS(app) #mngaktifkan CORS biar API backend bisa diakses dari frontend
+CORS(app) #ngaktipin CORS
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #mengambil path direktori saat ini
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #mengambil path
 DB_PATH = os.path.join(BASE_DIR, '..', 'database', 'kasir.db') #menyusun path ke database kasir.db
 
 def get_db(): #fungsi buat koneksi ke database
-    conn = sqlite3.connect(DB_PATH) #koneksi ke database kasir.db
+    conn = sqlite3.connect(DB_PATH) 
     conn.row_factory = sqlite3.Row #mengatur row_factory biar hasil query bisa diakses kayak dictionary
-    return conn #mengembalikan objek koneksi database
+    return conn 
 
 @app.route('/api/products', methods=['GET']) #buat ngambil data produk
 def get_products(): 
@@ -29,7 +29,7 @@ def add_product():
     cursor = conn.cursor() #membuat cursor buat eksekusi query
     cursor.execute( 
         "INSERT INTO products (name, price, stock, image) VALUES (?, ?, ?, ?)", #menggunakan parameterized query ('?') buat mencegah SQL injection
-        (data['name'], data['price'], data['stock'], data['image']) #mengambil data buat dimasukin ke query INSERT
+        (data['name'], data['price'], data['stock'], data['image']) 
     )
     conn.commit() #menyimpan perubahan ke database
     conn.close() 
@@ -42,7 +42,7 @@ def update_product(id):
     cursor = conn.cursor() 
     cursor.execute( 
         "UPDATE products SET name = ?, price = ?, stock = ?, image = ? WHERE id = ?", 
-        (data['name'], data['price'], data['stock'], data['image'], id) #mengambil data buat dimasukin ke query UPDATE
+        (data['name'], data['price'], data['stock'], data['image'], id) 
     )
     conn.commit() 
     conn.close() 
@@ -52,7 +52,7 @@ def update_product(id):
 def delete_product(id):
     conn = get_db() 
     cursor = conn.cursor() 
-    cursor.execute("DELETE FROM products WHERE id = ?", (id,)) # query buat hapus data produk di tabel products berdasarkan id
+    cursor.execute("DELETE FROM products WHERE id = ?", (id,)) 
     conn.commit() 
     conn.close() 
     return jsonify({"message": "Produk berhasil dihapus!"}), 200 #200 (OK)
@@ -64,31 +64,46 @@ def checkout():
     cursor = conn.cursor() 
     
     try: #membuka blok try buat menangani error
-        total_price = data['total_price'] #mengambil total harga dari data JSON
-        paid_amount = data['paid_amount'] #mengambil jumlah uang yang dibayarkan dari data JSON
-        change_amount = data['change_amount'] #mengambil jumlah kembalian dari data JSON
-        items = data['items'] #mengambil array item yang dibeli dari data JSON
+        total_price = data['total_price'] #ngambil total harga dari data JSON
+        paid_amount = data['paid_amount'] #ngambil jumlah uang yang dibayarkan dari data JSON
+        change_amount = data['change_amount'] #ngambil jumlah kembalian dari data JSON
+        items = data['items'] #ngambil array item yang dibeli dari data JSON
         
         date_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") #mengambil tanggal dan waktu saat ini dan memformatnya dalam format "YYYY-MM-DD HH:MM:SS"
         cursor.execute( 
             "INSERT INTO transactions (date, total_price, paid_amount, change_amount) VALUES (?, ?, ?, ?)", 
-            (date_now, total_price, paid_amount, change_amount) #mengambil data dari request body dan tanggal saat ini buat dimasukin ke query INSERT
+            (date_now, total_price, paid_amount, change_amount) #ngambil data dari request body dan tanggal saat ini
         )
         transaction_id = cursor.lastrowid #mengambil id transaksi yang baru saja ditambahkan
         
-        for item in items: #looping buat setiap item yang dibeli
-            cursor.execute( 
-                "INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES (?, ?, ?, ?)", 
-                (transaction_id, item['id'], item['qty'], item['subtotal']) #mengambil data dari item yang dibeli dan id transaksi buat dimasukin ke query INSERT
+        for item in items:
+            #Cek stok produk di database dulu
+            product = cursor.execute('SELECT stock FROM products WHERE id = ?', (item['id'],)).fetchone()
+            
+            if not product:
+                raise Exception(f"Produk dengan ID {item['id']} tidak ditemukan")
+            
+            current_stock = product['stock']
+            
+            #Kalau qty yang dibeli lebih besar dari stok, batalkan transaksi
+            if item['qty'] > current_stock:
+                raise Exception(f"Stok produk tidak mencukupi. Sisa stok: {current_stock}")
+            
+            #Kalau aman, masukin ke detail transaksi
+            cursor.execute(
+                "INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES (?, ?, ?, ?)",
+                (transaction_id, item['id'], item['qty'], item['subtotal'])
             )
-            cursor.execute( 
-                "UPDATE products SET stock = stock - ? WHERE id = ?", 
-                (item['qty'], item['id']) #mengambil data dari item yang dibeli buat dimasukin ke query UPDATE
+            
+            #Kurangi stok
+            cursor.execute(
+                "UPDATE products SET stock = stock - ? WHERE id = ?",
+                (item['qty'], item['id'])
             )
             
         conn.commit() 
         conn.close() 
-        return jsonify({"message": "Transaksi berhasil disimpan!", "transaction_id": transaction_id}), 201 #code 201 (Created) dan id transaksi yang baru saja ditambahkan
+        return jsonify({"message": "Transaksi berhasil disimpan!", "transaction_id": transaction_id}), 201 #code 201 (Created) 
 
     except Exception as e: #menangkap error yang terjadi selama proses checkout
         conn.rollback() #membatalkan perubahan yang belum disimpan ke database
@@ -98,7 +113,7 @@ def checkout():
 @app.route('/api/receipt/<int:transaction_id>', methods=['GET']) #buat ngambil data struk transaksi berdasarkan id transaksi
 def get_receipt(transaction_id): 
     conn = get_db() 
-    header = conn.execute('SELECT * FROM transactions WHERE id = ?', (transaction_id,)).fetchone() #query buat ngambil data header transaksi dari tabel transactions berdasarkan id transaksi
+    header = conn.execute('SELECT * FROM transactions WHERE id = ?', (transaction_id,)).fetchone() 
     
     if not header: #ngecek kalo data transaksi ga ada, kalo ga ada, ngembaliin error 404
         return jsonify({"error": "Transaksi tidak ditemukan"}), 404
@@ -108,7 +123,7 @@ def get_receipt(transaction_id):
         FROM transaction_details td 
         JOIN products p ON td.product_id = p.id 
         WHERE td.transaction_id = ?
-    ''', (transaction_id,)).fetchall() # query buat ngambil data detail transaksi dari tabel transaction_details dan tabel products berdasarkan id transaksi
+    ''', (transaction_id,)).fetchall()
     
     conn.close() 
     

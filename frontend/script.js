@@ -48,19 +48,42 @@ document.getElementById('search-product').addEventListener('input', function(e) 
     displayProducts(filteredProducts);
 });
 
-function addToCart(id, name, price) {//fungsi untuk menambahkan produk ke keranjang belanja
+function addToCart(id, name, price) {
+    // Cari data produk asli untuk tau stoknya
+    const productData = allProducts.find(p => p.id === id);
     const existingItem = cart.find(item => item.id === id);
+    
     if (existingItem) {
+        // Kalau udah ada di keranjang, cek apakah qty mau melebihi stok
+        if (existingItem.qty >= productData.stock) {
+            alert("Stok " + name + " tidak mencukupi, Sisa stok: " + productData.stock);
+            return;
+        }
         existingItem.qty += 1;
     } else {
+        // Kalau barang baru masuk keranjang, pastikan stoknya lebih dari 0
+        if (productData.stock <= 0) {
+            alert("Maaf, stok " + name + " sudah habis!");
+            return;
+        }
         cart.push({ id, name, price, qty: 1 });
     }
     renderCart();
 }
 
-function increaseQty(id) {//fungsi untuk menambah jumlah produk di keranjang belanja
+function increaseQty(id) {
+    const productData = allProducts.find(p => p.id === id);
     const item = cart.find(item => item.id === id);
-    if (item) { item.qty += 1; renderCart(); }
+    
+    if (item) {
+        // Cek apakah qty saat ini udah sama dengan stok di database
+        if (item.qty >= productData.stock) {
+            alert("Stok " + item.name + " tidak mencukupi, Maksimal: " + productData.stock);
+            return;
+        }
+        item.qty += 1;
+        renderCart();
+    }
 }
 
 function decreaseQty(id) {//fungsi untuk mengurangi jumlah produk di keranjang belanja
